@@ -80,16 +80,16 @@ Run these two commands inside Claude Code:
 /plugin install language-coach@language-coach
 ```
 
-Or from your shell:
+Or from your shell, with your language set right away:
 
 ```bash
 claude plugin marketplace add meth0xy/language-coach
-claude plugin install language-coach@language-coach
+claude plugin install language-coach@language-coach --config language=German --config explain_in=English
 ```
 
-Claude Code asks for two settings: the language you are learning, and the language for the explanations. Both default to English. Start a new session and write a prompt. The check appears at the top of the reply.
+There are two settings: `language` is the language you are learning, and `explain_in` is the language for the explanations. Both default to English. Start a new session and write a prompt. The check appears at the top of the reply.
 
-To change the language later, open `/config`, find the Language Coach rows, and start a new session.
+To change the language later, run `/plugin configure language-coach@language-coach` or open `/config` and find the Language Coach rows. The change applies from the next session.
 
 ### Cursor
 
