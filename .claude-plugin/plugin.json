@@ -1,14 +1,14 @@
 {
-  "name": "language-coach",
-  "displayName": "Language Coach",
-  "version": "1.1.0",
+  "name": "promptlingo",
+  "displayName": "PromptLingo",
+  "version": "2.0.0",
   "description": "Learn a language while you code. Every prompt you write gets corrected, logged, and turned into review quizzes.",
   "author": {
     "name": "meth0xy",
     "url": "https://github.com/meth0xy"
   },
-  "homepage": "https://github.com/meth0xy/language-coach",
-  "repository": "https://github.com/meth0xy/language-coach",
+  "homepage": "https://github.com/meth0xy/promptlingo",
+  "repository": "https://github.com/meth0xy/promptlingo",
   "license": "MIT",
   "keywords": ["language-learning", "english", "german", "spanish", "grammar", "writing", "hooks"],
   "userConfig": {

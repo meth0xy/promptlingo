@@ -1,11 +1,11 @@
 ---
-name: review
-description: Show the user's progress in the language they are learning and quiz them on their past mistakes. Use when the user runs /language-coach:review, asks how their English, German, Spanish or other language is improving, asks for their progress, or wants to be quizzed on their mistakes.
+name: progress
+description: Show the user's progress in the language they are learning and quiz them on their past mistakes. Use when the user runs /promptlingo:progress, asks how their English, German, Spanish or other language is improving, asks for their progress, or wants to be quizzed on their mistakes.
 ---
 
-# Language review
+# PromptLingo progress
 
-The Language Coach hooks log every ${user_config.language} check to `~/.language-coach/log.jsonl`. This skill reads that log with the coach script. Every command below ends with `--language "${user_config.language}"`.
+The PromptLingo hooks log every ${user_config.language} check to `~/.promptlingo/log.jsonl`. This skill reads that log with the coach script. Every command below ends with `--language "${user_config.language}"`.
 
 Write everything in this skill in correct, complete sentences, even when a terse output style is active. Write explanations in ${user_config.explain_in}.
 

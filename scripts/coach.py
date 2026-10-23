@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Language Coach: log language checks from Claude Code and Cursor, show progress, and run reviews."""
+"""PromptLingo: log language checks from Claude Code and Cursor, show progress, and run reviews."""
 import argparse
 import datetime as dt
 import hashlib
@@ -12,7 +12,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-HOME = Path(os.environ.get("LANGUAGE_COACH_HOME") or "~/.language-coach").expanduser()
+HOME = Path(os.environ.get("PROMPTLINGO_HOME") or "~/.promptlingo").expanduser()
 LOG = HOME / "log.jsonl"
 REVIEWS = HOME / "reviews.jsonl"
 CONFIG = HOME / "config.json"
@@ -21,7 +21,7 @@ ERRORS = HOME / "errors.log"
 DEFAULTS = {"language": "English", "explain_in": "English", "practice": "after"}
 PRACTICE_MODES = ("before", "after", "off")
 CATEGORIES = ("Spelling", "Grammar", "Word choice", "Structure", "Punctuation")
-REVIEW_COMMANDS = {"claude": "/language-coach:review", "cursor": "/language-review"}
+PROGRESS_COMMANDS = {"claude": "/promptlingo:progress", "cursor": "/promptlingo-progress"}
 WORDS_RE = re.compile(r"(\d+)\s+words?", re.I)
 EXTRA_RE = re.compile(r"\+(\d+)\s+smaller fix", re.I)
 
@@ -64,9 +64,9 @@ def save_config(**values):
 
 
 def setting(name, override=None):
-    """Resolve a setting from the command line, LANGUAGE_COACH_*, the Claude Code plugin option, then config.json."""
+    """Resolve a setting from the command line, PROMPTLINGO_*, the Claude Code plugin option, then config.json."""
     key = name.upper()
-    candidates = (override, os.environ.get("LANGUAGE_COACH_" + key),
+    candidates = (override, os.environ.get("PROMPTLINGO_" + key),
                   os.environ.get("CLAUDE_PLUGIN_OPTION_" + key), read_config().get(name))
     for value in candidates:
         # An unset plugin option can reach a skill as the literal text "${user_config.language}".
@@ -264,12 +264,12 @@ def render_rule(language, explain_in, tool, practice):
     if not example.is_file():
         example = examples / "english.md"
         note = "The rows in this example are English. Yours are about {{language}}.\n\n"
-    text = (ROOT / "rules" / "language-coach.md").read_text(encoding="utf-8")
+    text = (ROOT / "rules" / "promptlingo.md").read_text(encoding="utf-8")
     practice_text = (ROOT / "rules" / "practice" / f"{practice}.md").read_text(encoding="utf-8")
     text = text.replace("{{practice}}", practice_text.strip())
     text = text.replace("{{example_note}}", note)
     text = text.replace("{{example}}", example.read_text(encoding="utf-8").strip())
-    values = {"language": language, "explain_in": explain_in, "review_command": REVIEW_COMMANDS[tool]}
+    values = {"language": language, "explain_in": explain_in, "progress_command": PROGRESS_COMMANDS[tool]}
     for key, value in values.items():
         text = text.replace("{{" + key + "}}", value)
     return text
@@ -281,7 +281,7 @@ def recurring_mistakes(language, limit):
     if not groups:
         return ""
     lines = [f'- "{g["wrote"]}" → "{g["better"]}" ({g["category"]}, {g["count"]}x)' for g in groups[:limit]]
-    return (f"Language Coach: the user's recurring {language} mistakes from earlier sessions. "
+    return (f"PromptLingo: the user's recurring {language} mistakes from earlier sessions. "
             "When one comes up again, its Why cell gets (again).\n" + "\n".join(lines))
 
 
@@ -303,7 +303,7 @@ def context(args):
 
 def reminder(args):
     language = setting("language", args.language)
-    text = (f"Language Coach is on. The user is practicing {language}, so this reply opens with "
+    text = (f"PromptLingo is on. The user is practicing {language}, so this reply opens with "
             f"the {language} check block described in the session rules.")
     if practice_mode(args.practice) == "before":
         text += (" Practice before the task is on: when the check has corrections, the reply stops after the "

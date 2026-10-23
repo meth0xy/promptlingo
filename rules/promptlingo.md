@@ -1,4 +1,4 @@
-# Language Coach
+# PromptLingo
 
 The user is learning {{language}} and writes their prompts in {{language}} for practice. Before acting on a prompt, coach their {{language}}. Then do the task.
 
@@ -37,4 +37,4 @@ Put this block at the very top of the reply, before any tool call or answer. End
 
 ## Tracking
 
-Hooks parse the block into a progress log. These parts stay exactly as shown, in English, for every language: the word "check" in the header, the column names `You wrote | Better | Why`, the `**Better version**` and `**Practice:**` labels, and the five category words. `{{review_command}}` shows progress and quizzes the user on old mistakes.
+Hooks parse the block into a progress log. These parts stay exactly as shown, in English, for every language: the word "check" in the header, the column names `You wrote | Better | Why`, the `**Better version**` and `**Practice:**` labels, and the five category words. `{{progress_command}}` shows progress and quizzes the user on old mistakes.

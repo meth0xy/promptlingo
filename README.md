@@ -1,4 +1,4 @@
-# Language Coach
+# PromptLingo
 
 **Learn a language while you code.** Write your prompts to Claude Code or Cursor in the language you are learning. Before every answer, the AI corrects your spelling, grammar and phrasing, then does the task as usual. Every correction is logged on your machine, so you can see your progress and get quizzed on the mistakes you keep making.
 
@@ -50,7 +50,7 @@ When your prompt has no mistakes, the check is a single line: **English check:**
 
 ## Why
 
-If you work with an AI coding tool, you already write dozens of prompts a day. That is a lot of writing practice, and normally none of it teaches you anything. Language Coach turns it into lessons:
+If you work with an AI coding tool, you already write dozens of prompts a day. That is a lot of writing practice, and normally none of it teaches you anything. PromptLingo turns it into lessons:
 
 - The corrections are about your own sentences, on topics you care about, at the moment you wrote them.
 - You see each fix next to a short reason, so you learn the rule and not just the answer.
@@ -63,7 +63,7 @@ If you work with an AI coding tool, you already write dozens of prompts a day. T
 - **A practice sentence.** One corrected sentence to retype, because typing it once makes it stick. By default the task runs right away and you retype it in your next prompt. If you want, the AI waits and starts the task only after you have retyped it. See [Practice modes](#practice-modes).
 - **A progress log.** Hooks save every check to a local file after each reply. The AI makes no extra tool calls, and nothing depends on it remembering to log.
 - **Recurring mistakes across sessions.** When a session starts, the coach tells the AI which mistakes you keep making, so repeats are marked "(again)".
-- **A review quiz.** `/language-coach:review` shows your stats, then quizzes you with new sentences that contain your old mistakes. A mistake counts as mastered after two correct answers in a row.
+- **Progress and a quiz.** `/promptlingo:progress` shows your stats, then quizzes you with new sentences that contain your old mistakes. A mistake counts as mastered after two correct answers in a row.
 - **Any language.** Pick the language you are learning and the language of the explanations.
 - **Claude Code and Cursor.** Both tools write to the same log, so your progress is in one place.
 - **Small and local.** One Python 3 script, standard library only. It makes no network calls.
@@ -77,15 +77,15 @@ You need Python 3.9 or later as `python3` on your `PATH`. macOS and Linux are te
 Run these two commands inside Claude Code:
 
 ```text
-/plugin marketplace add meth0xy/language-coach
-/plugin install language-coach@language-coach
+/plugin marketplace add meth0xy/promptlingo
+/plugin install promptlingo@promptlingo
 ```
 
 Or from your shell, with your language set right away:
 
 ```bash
-claude plugin marketplace add meth0xy/language-coach
-claude plugin install language-coach@language-coach --config language=German --config practice=before
+claude plugin marketplace add meth0xy/promptlingo
+claude plugin install promptlingo@promptlingo --config language=German --config practice=before
 ```
 
 There are three settings:
@@ -98,34 +98,34 @@ There are three settings:
 
 Start a new session and write a prompt. The check appears at the top of the reply.
 
-To change a setting later, run `/plugin configure language-coach@language-coach` or open `/config` and find the Language Coach rows. The change applies from the next session.
+To change a setting later, run `/plugin configure promptlingo@promptlingo` or open `/config` and find the PromptLingo rows. The change applies from the next session.
 
 ### Cursor
 
 Clone the repo and run the installer with your language:
 
 ```bash
-git clone https://github.com/meth0xy/language-coach.git ~/language-coach
-python3 ~/language-coach/scripts/install_cursor.py --language German
+git clone https://github.com/meth0xy/promptlingo.git ~/promptlingo
+python3 ~/promptlingo/scripts/install_cursor.py --language German
 ```
 
 The installer writes three things:
 
 | File | What it is |
 |---|---|
-| `~/.cursor/rules/language-coach.mdc` | The coaching rule, always applied |
-| `~/.cursor/skills/language-review/SKILL.md` | The review skill, run it with `/language-review` |
+| `~/.cursor/rules/promptlingo.mdc` | The coaching rule, always applied |
+| `~/.cursor/skills/promptlingo-progress/SKILL.md` | The progress skill, run it with `/promptlingo-progress` |
 | `~/.cursor/hooks.json` | Two hooks for logging and recurring mistakes. Hooks you already have are kept |
 
 Add `--explain-in Spanish` for explanations in another language, and `--practice before` to make the AI wait until you have retyped the practice sentence.
 
 Keep the cloned folder where it is, because the hooks run the script from there. If Cursor asks you to approve the new hooks, approve them in Settings > Hooks. To change a setting, run the installer again with the new value.
 
-You can use Claude Code and Cursor side by side. Both write to `~/.language-coach/log.jsonl`.
+You can use Claude Code and Cursor side by side. Both write to `~/.promptlingo/log.jsonl`.
 
 ## Learn any language
 
-Language Coach is not tied to English. Set the language you are learning, write your prompts in it, and every prompt gets coached in that language.
+PromptLingo is not tied to English. Set the language you are learning, write your prompts in it, and every prompt gets coached in that language.
 
 **Learning German?** Set the language to German and write your prompts in German:
 
@@ -179,7 +179,7 @@ If you write a prompt in a different language, for example in your native langua
 
 ### Adapting the rule to your language
 
-The coaching rule is plain Markdown in [`rules/language-coach.md`](rules/language-coach.md). The language name is filled in when a session starts. You can fork the repo and change anything, for example to focus on gendered nouns, verb aspect, formal and informal address, or kanji.
+The coaching rule is plain Markdown in [`rules/promptlingo.md`](rules/promptlingo.md). The language name is filled in when a session starts. You can fork the repo and change anything, for example to focus on gendered nouns, verb aspect, formal and informal address, or kanji.
 
 The rule ships with examples for English, German and Spanish in [`rules/examples/`](rules/examples/). Other languages use the English example rows and still work. To add an example for your language, create `rules/examples/<language>.md` (for example `french.md`) in the same format and open a pull request.
 
@@ -221,10 +221,10 @@ A few details:
 
 | Tool | Command |
 |---|---|
-| Claude Code | `/language-coach:review` |
-| Cursor | `/language-review` |
+| Claude Code | `/promptlingo:progress` |
+| Cursor | `/promptlingo-progress` |
 
-You can also just ask, for example "How is my German going?" or "Quiz me on my mistakes". The review shows your progress first, then gives you up to 5 sentences to correct. Your answers are graded and recorded.
+You can also just ask, for example "How is my German going?" or "Quiz me on my mistakes". The command shows your progress first, then gives you up to 5 sentences to correct. Your answers are graded and recorded.
 
 Example progress report, from a sample log after four weeks of German:
 
@@ -265,17 +265,17 @@ The error rate counts fixes per 100 words you wrote, so long and short prompts a
 flowchart LR
     A[You write a prompt] --> B[Reply opens with the check block]
     B --> C[Hook parses the block]
-    C --> D[(~/.language-coach/log.jsonl)]
+    C --> D[(~/.promptlingo/log.jsonl)]
     D --> E[Next session: recurring mistakes]
     E --> B
-    D --> F[Review: stats and quiz]
+    D --> F[Progress: stats and quiz]
 ```
 
 1. **The rule.** When a session starts, a hook gives the AI the coaching rule with your language filled in. In Cursor, the rule is a file in `~/.cursor/rules/`.
 2. **The check.** The AI writes the check block at the top of its reply, in a fixed format.
 3. **The log.** After each reply, a hook reads the block and appends one line to the log. The hook does the parsing, not the AI, so there are no extra tool calls.
 4. **Recurring mistakes.** At the next session start, mistakes you made at least twice and have not mastered are added to the context, so the AI can mark them "(again)".
-5. **The review.** The review skill runs the same script to print your stats, pick the mistakes that are due, and record your answers.
+5. **Progress.** The progress skill runs the same script to print your stats, pick the mistakes that are due, and record your answers.
 
 | Hook | Claude Code | Cursor | What it does |
 |---|---|---|---|
@@ -285,7 +285,7 @@ flowchart LR
 
 ## Your data
 
-Everything stays in `~/.language-coach/` on your machine:
+Everything stays in `~/.promptlingo/` on your machine:
 
 | File | Contents |
 |---|---|
@@ -317,10 +317,10 @@ Environment variables, for advanced setups:
 
 | Variable | Effect |
 |---|---|
-| `LANGUAGE_COACH_LANGUAGE` | Overrides the language you are learning |
-| `LANGUAGE_COACH_EXPLAIN_IN` | Overrides the language for explanations |
-| `LANGUAGE_COACH_PRACTICE` | Overrides the practice mode |
-| `LANGUAGE_COACH_HOME` | Stores the data somewhere other than `~/.language-coach` |
+| `PROMPTLINGO_LANGUAGE` | Overrides the language you are learning |
+| `PROMPTLINGO_EXPLAIN_IN` | Overrides the language for explanations |
+| `PROMPTLINGO_PRACTICE` | Overrides the practice mode |
+| `PROMPTLINGO_HOME` | Stores the data somewhere other than `~/.promptlingo` |
 
 ### Command line
 
@@ -341,22 +341,22 @@ The `rule` command is useful for tools without hooks. Paste its output into the 
 **Claude Code:**
 
 ```text
-/plugin uninstall language-coach@language-coach
+/plugin uninstall promptlingo@promptlingo
 ```
 
 **Cursor:**
 
 ```bash
-python3 ~/language-coach/scripts/install_cursor.py --uninstall
+python3 ~/promptlingo/scripts/install_cursor.py --uninstall
 ```
 
-Both keep your log in `~/.language-coach/`. Delete that folder to remove your data too.
+Both keep your log in `~/.promptlingo/`. Delete that folder to remove your data too.
 
 ## FAQ
 
 **Does it cost extra tokens?** A little. The rule adds about 1,000 tokens once per session, the reminder about 40 tokens per prompt, and each check roughly 50 to 300 tokens per reply, depending on how many mistakes there are.
 
-**Can I turn it off for a while?** In Claude Code, run `/plugin disable language-coach@language-coach`, and `/plugin enable ...` to turn it back on. In Cursor, run the installer with `--uninstall`. Your log stays either way.
+**Can I turn it off for a while?** In Claude Code, run `/plugin disable promptlingo@promptlingo`, and `/plugin enable ...` to turn it back on. In Cursor, run the installer with `--uninstall`. Your log stays either way.
 
 **How accurate are the corrections?** As accurate as the model you use. Strong models are very good at this, but they can still miss a mistake or flag something that is fine. When a correction looks wrong to you, ask about it in the same session.
 
@@ -371,19 +371,19 @@ Both keep your log in `~/.language-coach/`. Delete that folder to remove your da
 ## Development
 
 ```text
-language-coach/
+promptlingo/
 ├── .claude-plugin/
 │   ├── plugin.json          # plugin manifest and the two settings
 │   └── marketplace.json     # lets users install from this repo
 ├── hooks/hooks.json         # Claude Code hooks
 ├── rules/
-│   ├── language-coach.md    # the coaching rule template
+│   ├── promptlingo.md    # the coaching rule template
 │   ├── examples/            # example check blocks per language
 │   └── practice/            # the rule section for each practice mode
 ├── scripts/
 │   ├── coach.py             # parsing, logging, stats, quiz, review
 │   └── install_cursor.py    # Cursor installer
-├── skills/review/SKILL.md   # the review skill
+├── skills/progress/SKILL.md # the progress skill
 └── tests/test_coach.py
 ```
 

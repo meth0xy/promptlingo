@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install or remove Language Coach for Cursor: the rule, the review skill, and the hooks."""
+"""Install or remove PromptLingo for Cursor: the rule, the progress skill, and the hooks."""
 import argparse
 import json
 import re
@@ -11,8 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import coach  # noqa: E402
 
 CURSOR = Path.home() / ".cursor"
-RULE = CURSOR / "rules" / "language-coach.mdc"
-SKILL = CURSOR / "skills" / "language-review" / "SKILL.md"
+RULE = CURSOR / "rules" / "promptlingo.mdc"
+SKILL = CURSOR / "skills" / "promptlingo-progress" / "SKILL.md"
 HOOKS = CURSOR / "hooks.json"
 SCRIPT = Path(coach.__file__).resolve()
 
@@ -24,16 +24,16 @@ def render_rule(language, explain_in, practice):
 
 
 def render_skill(language, explain_in):
-    text = (coach.ROOT / "skills" / "review" / "SKILL.md").read_text(encoding="utf-8")
+    text = (coach.ROOT / "skills" / "progress" / "SKILL.md").read_text(encoding="utf-8")
     replacements = {
         "${CLAUDE_PLUGIN_ROOT}": str(coach.ROOT),
         "${user_config.language}": language,
         "${user_config.explain_in}": explain_in,
-        "/language-coach:review": "/language-review",
+        "/promptlingo:progress": "/promptlingo-progress",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
-    return re.sub(r"^name: review$", "name: language-review", text, count=1, flags=re.M)
+    return re.sub(r"^name: progress$", "name: promptlingo-progress", text, count=1, flags=re.M)
 
 
 def is_ours(entry):
@@ -78,7 +78,7 @@ def install(language, explain_in, practice):
         {"command": f"{run} hook-cursor", "timeout": 15})
     save_hooks(config)
 
-    print(f"Language Coach is set up for Cursor. Language: {language}. Explanations: {explain_in}. "
+    print(f"PromptLingo is set up for Cursor. Language: {language}. Explanations: {explain_in}. "
           f"Practice: {practice}.")
     print(f"  rule   {RULE}\n  skill  {SKILL}\n  hooks  {HOOKS}\n  log    {coach.LOG}")
     print("Keep this folder in place: the hooks run the script from here.")
@@ -91,7 +91,7 @@ def uninstall():
         shutil.rmtree(SKILL.parent)
     if HOOKS.exists():
         save_hooks(remove_our_hooks(load_hooks()))
-    print(f"Language Coach is removed from Cursor. Your log stays in {coach.HOME}.")
+    print(f"PromptLingo is removed from Cursor. Your log stays in {coach.HOME}.")
 
 
 def main():

@@ -44,9 +44,9 @@ class CoachTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.home = Path(self.tmp.name)
-        self.data = self.home / ".language-coach"
+        self.data = self.home / ".promptlingo"
         self.env = {k: v for k, v in os.environ.items()
-                    if not k.startswith(("LANGUAGE_COACH_", "CLAUDE_PLUGIN_OPTION_"))}
+                    if not k.startswith(("PROMPTLINGO_", "CLAUDE_PLUGIN_OPTION_"))}
         self.env["HOME"] = str(self.home)
 
     def tearDown(self):
@@ -88,7 +88,7 @@ class CoachTest(unittest.TestCase):
         self.assertEqual(len(self.log()), 1)
 
     def test_header_must_name_the_configured_language(self):
-        german = {"LANGUAGE_COACH_LANGUAGE": "German"}
+        german = {"PROMPTLINGO_LANGUAGE": "German"}
         self.cursor_hook(ENGLISH_BLOCK, "g1", env=german)
         self.assertEqual(self.log(), [])
         self.cursor_hook(GERMAN_BLOCK, "g2", env=german)
@@ -164,12 +164,12 @@ class CoachTest(unittest.TestCase):
         out = self.coach("context", "--rule").stdout
         self.assertIn("### English check · 9 words", out)
         self.assertIn('"sugest" → "suggest" (Spelling, 2x)', out)
-        self.assertIn("/language-coach:review", out)
+        self.assertIn("/promptlingo:progress", out)
         self.assertNotIn("{{", out)
         self.assertLess(len(out), 10000)
 
         cursor = json.loads(self.coach("context", "--format", "cursor").stdout)
-        self.assertNotIn("# Language Coach", cursor["additional_context"])
+        self.assertNotIn("# PromptLingo", cursor["additional_context"])
         self.assertIn("sugest", cursor["additional_context"])
 
     def test_rule_uses_language_examples_and_falls_back(self):
@@ -223,20 +223,20 @@ class CoachTest(unittest.TestCase):
         self.assertEqual(len(hooks["sessionStart"]), 1)
         self.assertIn(str(COACH), hooks["afterAgentResponse"][1]["command"])
 
-        rule = (self.home / ".cursor" / "rules" / "language-coach.mdc").read_text()
+        rule = (self.home / ".cursor" / "rules" / "promptlingo.mdc").read_text()
         self.assertTrue(rule.startswith("---\ndescription: The user is learning German."))
         self.assertIn("alwaysApply: true", rule)
-        self.assertIn("/language-review", rule)
+        self.assertIn("/promptlingo-progress", rule)
         self.assertIn("retype this sentence to start the task", rule)
-        skill = (self.home / ".cursor" / "skills" / "language-review" / "SKILL.md").read_text()
-        self.assertIn("name: language-review", skill)
+        skill = (self.home / ".cursor" / "skills" / "promptlingo-progress" / "SKILL.md").read_text()
+        self.assertIn("name: promptlingo-progress", skill)
         self.assertIn(f'python3 "{ROOT}/scripts/coach.py" stats --language "German"', skill)
         self.assertNotIn("${", skill)
 
         self.run_script(INSTALLER, "--uninstall")
         self.assertEqual(json.loads(hooks_file.read_text())["hooks"], {"afterAgentResponse": [other]})
-        self.assertFalse((self.home / ".cursor" / "rules" / "language-coach.mdc").exists())
-        self.assertFalse((self.home / ".cursor" / "skills" / "language-review").exists())
+        self.assertFalse((self.home / ".cursor" / "rules" / "promptlingo.mdc").exists())
+        self.assertFalse((self.home / ".cursor" / "skills" / "promptlingo-progress").exists())
 
 
 if __name__ == "__main__":
