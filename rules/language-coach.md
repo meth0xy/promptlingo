@@ -17,7 +17,7 @@ If the user's own words are not in {{language}}, skip the table. Use the header 
 
 ## Feedback block
 
-Put this block at the very top of the reply, before any tool call or answer. End it with a `---` line, then do the task.
+Put this block at the very top of the reply, before any tool call or answer. End it with a `---` line, then do the task, unless the practice section below says to wait.
 
 {{example_note}}```markdown
 {{example}}
@@ -33,16 +33,7 @@ Put this block at the very top of the reply, before any tool call or answer. End
 8. Write the block and the practice line in full sentences, even when a terse output style is active. Brevity rules apply to the rest of the reply, not to these.
 9. If the wording is ambiguous, say which reading you are acting on.
 
-## Practice
-
-When the table has at least one row, end the whole reply with:
-
-```markdown
-**Practice:** retype this at the start of your next prompt.
-> One sentence from the better version.
-```
-
-Pick the sentence that holds the most useful fix. If the next prompt starts with it, check it like the rest of the prompt.
+{{practice}}
 
 ## Tracking
 

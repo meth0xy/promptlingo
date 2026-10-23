@@ -181,6 +181,30 @@ class CoachTest(unittest.TestCase):
         self.assertIn("The rows in this example are English. Yours are about French.", french)
         self.assertNotIn("{{", french)
 
+    def test_practice_modes_change_the_rule_and_reminder(self):
+        after = self.coach("rule").stdout
+        self.assertIn("retype this at the start of your next prompt", after)
+        self.assertNotIn("{{", after)
+
+        before = self.coach("rule", "--practice", "before", "--language", "German").stdout
+        self.assertIn("retype this sentence to start the task", before)
+        self.assertIn("Do not write a German check block for the retyped sentence", before)
+        self.assertNotIn("retype this at the start of your next prompt", before)
+
+        off = self.coach("rule", "--practice", "off").stdout
+        self.assertNotIn("## Practice", off)
+        self.assertEqual(self.coach("rule", "--practice", "sometimes").stdout, after)
+
+        self.assertNotIn("task waits", self.coach("reminder").stdout)
+        gate = {"CLAUDE_PLUGIN_OPTION_PRACTICE": "Before"}
+        self.assertIn("task waits", self.coach("reminder", env=gate).stdout)
+        self.assertIn("retype this sentence to start the task", self.coach("context", "--rule", env=gate).stdout)
+
+    def test_config_saves_and_validates_practice(self):
+        self.assertIn("practice: before", self.coach("config", "--practice", "before").stdout)
+        self.assertEqual(json.loads((self.data / "config.json").read_text())["practice"], "before")
+        self.assertNotEqual(self.coach("config", "--practice", "maybe", check=False).returncode, 0)
+
     def test_empty_context_prints_nothing(self):
         self.assertEqual(self.coach("context").stdout, "")
         self.assertEqual(self.coach("context", "--format", "cursor").stdout.strip(), "{}")
@@ -193,7 +217,7 @@ class CoachTest(unittest.TestCase):
         hooks_file.write_text(json.dumps({"version": 1, "hooks": {"afterAgentResponse": [other]}}))
 
         self.run_script(INSTALLER, "--language", "German")
-        self.run_script(INSTALLER, "--language", "German")
+        self.run_script(INSTALLER, "--language", "German", "--practice", "before")
         hooks = json.loads(hooks_file.read_text())["hooks"]
         self.assertEqual(len(hooks["afterAgentResponse"]), 2)
         self.assertEqual(len(hooks["sessionStart"]), 1)
@@ -203,6 +227,7 @@ class CoachTest(unittest.TestCase):
         self.assertTrue(rule.startswith("---\ndescription: The user is learning German."))
         self.assertIn("alwaysApply: true", rule)
         self.assertIn("/language-review", rule)
+        self.assertIn("retype this sentence to start the task", rule)
         skill = (self.home / ".cursor" / "skills" / "language-review" / "SKILL.md").read_text()
         self.assertIn("name: language-review", skill)
         self.assertIn(f'python3 "{ROOT}/scripts/coach.py" stats --language "German"', skill)

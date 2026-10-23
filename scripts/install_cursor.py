@@ -17,8 +17,8 @@ HOOKS = CURSOR / "hooks.json"
 SCRIPT = Path(coach.__file__).resolve()
 
 
-def render_rule(language, explain_in):
-    body = coach.render_rule(language, explain_in, "cursor")
+def render_rule(language, explain_in, practice):
+    body = coach.render_rule(language, explain_in, "cursor", practice)
     return (f"---\ndescription: The user is learning {language}. Coach their {language} first, then do the task.\n"
             f"alwaysApply: true\n---\n\n{body}")
 
@@ -65,9 +65,9 @@ def write(path, text):
     path.write_text(text, encoding="utf-8")
 
 
-def install(language, explain_in):
-    coach.save_config(language=language, explain_in=explain_in)
-    write(RULE, render_rule(language, explain_in))
+def install(language, explain_in, practice):
+    coach.save_config(language=language, explain_in=explain_in, practice=practice)
+    write(RULE, render_rule(language, explain_in, practice))
     write(SKILL, render_skill(language, explain_in))
 
     config = remove_our_hooks(load_hooks())
@@ -78,7 +78,8 @@ def install(language, explain_in):
         {"command": f"{run} hook-cursor", "timeout": 15})
     save_hooks(config)
 
-    print(f"Language Coach is set up for Cursor. Language: {language}. Explanations: {explain_in}.")
+    print(f"Language Coach is set up for Cursor. Language: {language}. Explanations: {explain_in}. "
+          f"Practice: {practice}.")
     print(f"  rule   {RULE}\n  skill  {SKILL}\n  hooks  {HOOKS}\n  log    {coach.LOG}")
     print("Keep this folder in place: the hooks run the script from here.")
     print("If Cursor asks you to approve the new hooks, approve them in Settings > Hooks.")
@@ -97,12 +98,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--language", help="language you are learning (default: English)")
     parser.add_argument("--explain-in", dest="explain_in", help="language of the explanations (default: English)")
+    parser.add_argument("--practice", choices=coach.PRACTICE_MODES,
+                        help="before: retype the corrected sentence before the task starts; "
+                             "after: retype it at the start of your next prompt (default); off: no practice")
     parser.add_argument("--uninstall", action="store_true", help="remove the rule, skill and hooks")
     args = parser.parse_args()
     if args.uninstall:
         uninstall()
     else:
-        install(coach.setting("language", args.language), coach.setting("explain_in", args.explain_in))
+        install(coach.setting("language", args.language), coach.setting("explain_in", args.explain_in),
+                coach.practice_mode(args.practice))
 
 
 if __name__ == "__main__":

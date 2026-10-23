@@ -1,7 +1,7 @@
 {
   "name": "language-coach",
   "displayName": "Language Coach",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Learn a language while you code. Every prompt you write gets corrected, logged, and turned into review quizzes.",
   "author": {
     "name": "meth0xy",
@@ -23,6 +23,12 @@
       "title": "Language for explanations",
       "description": "Language of the short explanation next to each correction.",
       "default": "English"
+    },
+    "practice": {
+      "type": "string",
+      "title": "When to retype the corrected sentence",
+      "description": "after: at the start of your next prompt, the task runs right away. before: the task waits until you retype it. off: no practice sentence.",
+      "default": "after"
     }
   }
 }

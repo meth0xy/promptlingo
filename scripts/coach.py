@@ -18,7 +18,8 @@ REVIEWS = HOME / "reviews.jsonl"
 CONFIG = HOME / "config.json"
 ERRORS = HOME / "errors.log"
 
-DEFAULTS = {"language": "English", "explain_in": "English"}
+DEFAULTS = {"language": "English", "explain_in": "English", "practice": "after"}
+PRACTICE_MODES = ("before", "after", "off")
 CATEGORIES = ("Spelling", "Grammar", "Word choice", "Structure", "Punctuation")
 REVIEW_COMMANDS = {"claude": "/language-coach:review", "cursor": "/language-review"}
 WORDS_RE = re.compile(r"(\d+)\s+words?", re.I)
@@ -72,6 +73,11 @@ def setting(name, override=None):
         if isinstance(value, str) and value.strip() and "${" not in value:
             return value.strip()
     return DEFAULTS[name]
+
+
+def practice_mode(override=None):
+    mode = setting("practice", override).lower()
+    return mode if mode in PRACTICE_MODES else DEFAULTS["practice"]
 
 
 def same_language(row, language):
@@ -251,7 +257,7 @@ def mistake_groups(language):
     return groups
 
 
-def render_rule(language, explain_in, tool):
+def render_rule(language, explain_in, tool, practice):
     examples = ROOT / "rules" / "examples"
     example = examples / (re.sub(r"\W+", "-", language.lower()).strip("-") + ".md")
     note = ""
@@ -259,6 +265,8 @@ def render_rule(language, explain_in, tool):
         example = examples / "english.md"
         note = "The rows in this example are English. Yours are about {{language}}.\n\n"
     text = (ROOT / "rules" / "language-coach.md").read_text(encoding="utf-8")
+    practice_text = (ROOT / "rules" / "practice" / f"{practice}.md").read_text(encoding="utf-8")
+    text = text.replace("{{practice}}", practice_text.strip())
     text = text.replace("{{example_note}}", note)
     text = text.replace("{{example}}", example.read_text(encoding="utf-8").strip())
     values = {"language": language, "explain_in": explain_in, "review_command": REVIEW_COMMANDS[tool]}
@@ -281,7 +289,8 @@ def context(args):
     language = setting("language", args.language)
     parts = []
     if args.rule:
-        parts.append(render_rule(language, setting("explain_in", args.explain_in), args.format))
+        parts.append(render_rule(language, setting("explain_in", args.explain_in), args.format,
+                                 practice_mode(args.practice)))
     recurring = recurring_mistakes(language, args.limit)
     if recurring:
         parts.append(recurring)
@@ -294,12 +303,18 @@ def context(args):
 
 def reminder(args):
     language = setting("language", args.language)
-    print(f"Language Coach is on. The user is practicing {language}, so this reply opens with "
-          f"the {language} check block described in the session rules.")
+    text = (f"Language Coach is on. The user is practicing {language}, so this reply opens with "
+            f"the {language} check block described in the session rules.")
+    if practice_mode(args.practice) == "before":
+        text += (" Practice before the task is on: when the check has corrections, the reply stops after the "
+                 "practice sentence and the task waits. If this message retypes the last practice sentence "
+                 "with the fix, or says skip, the original task starts now, without a new check block.")
+    print(text)
 
 
 def rule(args):
-    print(render_rule(setting("language", args.language), setting("explain_in", args.explain_in), args.format))
+    print(render_rule(setting("language", args.language), setting("explain_in", args.explain_in), args.format,
+                      practice_mode(args.practice)))
 
 
 def rate(rows):
@@ -383,9 +398,13 @@ def review(args):
 
 
 def config(args):
-    if args.language or args.explain_in:
-        save_config(language=args.language, explain_in=args.explain_in)
-    print(f"language: {setting('language')}\nexplain_in: {setting('explain_in')}\nlog: {LOG}")
+    if args.practice and args.practice.lower() not in PRACTICE_MODES:
+        sys.exit(f"--practice must be one of: {', '.join(PRACTICE_MODES)}")
+    if args.language or args.explain_in or args.practice:
+        save_config(language=args.language, explain_in=args.explain_in,
+                    practice=args.practice and args.practice.lower())
+    print(f"language: {setting('language')}\nexplain_in: {setting('explain_in')}\n"
+          f"practice: {practice_mode()}\nlog: {LOG}")
 
 
 def run_safely(action, name):
@@ -402,6 +421,7 @@ def main():
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--language", help="language being learned (default: plugin option, then config.json)")
     common.add_argument("--explain-in", dest="explain_in", help="language of the explanations")
+    common.add_argument("--practice", help="when to retype the corrected sentence: before, after or off")
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -425,7 +445,7 @@ def main():
     p = add("review", "record a review result")
     p.add_argument("id")
     p.add_argument("result", choices=("pass", "fail"))
-    add("config", "show the settings, or save --language and --explain-in")
+    add("config", "show the settings, or save --language, --explain-in and --practice")
     args = parser.parse_args()
 
     hooks = {"hook-claude": hook_claude, "hook-cursor": hook_cursor}

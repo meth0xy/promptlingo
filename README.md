@@ -9,6 +9,7 @@ It works with any language. Set it to English, German, Spanish, or whatever you 
 - [Features](#features)
 - [Install](#install)
 - [Learn any language](#learn-any-language)
+- [Practice modes](#practice-modes)
 - [Usage](#usage)
 - [How it works](#how-it-works)
 - [Your data](#your-data)
@@ -59,7 +60,7 @@ If you work with an AI coding tool, you already write dozens of prompts a day. T
 
 - **A correction before every answer.** Spelling, grammar, word choice, sentence structure and punctuation, as a small table plus one natural rewrite. Long prompts get at most 6 rows, so the check stays short.
 - **Only your own words.** Pasted bug reports, tickets, logs, stack traces, code and quotes are skipped, in any language. Paste freely.
-- **A practice line.** One corrected sentence to retype at the start of your next prompt. Typing it once makes it stick, and it never blocks your work.
+- **A practice sentence.** One corrected sentence to retype, because typing it once makes it stick. By default the task runs right away and you retype it in your next prompt. If you want, the AI waits and starts the task only after you have retyped it. See [Practice modes](#practice-modes).
 - **A progress log.** Hooks save every check to a local file after each reply. The AI makes no extra tool calls, and nothing depends on it remembering to log.
 - **Recurring mistakes across sessions.** When a session starts, the coach tells the AI which mistakes you keep making, so repeats are marked "(again)".
 - **A review quiz.** `/language-coach:review` shows your stats, then quizzes you with new sentences that contain your old mistakes. A mistake counts as mastered after two correct answers in a row.
@@ -84,12 +85,20 @@ Or from your shell, with your language set right away:
 
 ```bash
 claude plugin marketplace add meth0xy/language-coach
-claude plugin install language-coach@language-coach --config language=German --config explain_in=English
+claude plugin install language-coach@language-coach --config language=German --config practice=before
 ```
 
-There are two settings: `language` is the language you are learning, and `explain_in` is the language for the explanations. Both default to English. Start a new session and write a prompt. The check appears at the top of the reply.
+There are three settings:
 
-To change the language later, run `/plugin configure language-coach@language-coach` or open `/config` and find the Language Coach rows. The change applies from the next session.
+| Setting | Meaning | Default |
+|---|---|---|
+| `language` | The language you are learning | English |
+| `explain_in` | The language for the explanations | English |
+| `practice` | When you retype the corrected sentence: `after`, `before` or `off`. See [Practice modes](#practice-modes) | after |
+
+Start a new session and write a prompt. The check appears at the top of the reply.
+
+To change a setting later, run `/plugin configure language-coach@language-coach` or open `/config` and find the Language Coach rows. The change applies from the next session.
 
 ### Cursor
 
@@ -108,7 +117,9 @@ The installer writes three things:
 | `~/.cursor/skills/language-review/SKILL.md` | The review skill, run it with `/language-review` |
 | `~/.cursor/hooks.json` | Two hooks for logging and recurring mistakes. Hooks you already have are kept |
 
-Keep the cloned folder where it is, because the hooks run the script from there. If Cursor asks you to approve the new hooks, approve them in Settings > Hooks. To change the language, run the installer again with another `--language`.
+Add `--explain-in Spanish` for explanations in another language, and `--practice before` to make the AI wait until you have retyped the practice sentence.
+
+Keep the cloned folder where it is, because the hooks run the script from there. If Cursor asks you to approve the new hooks, approve them in Settings > Hooks. To change a setting, run the installer again with the new value.
 
 You can use Claude Code and Cursor side by side. Both write to `~/.language-coach/log.jsonl`.
 
@@ -172,11 +183,39 @@ The coaching rule is plain Markdown in [`rules/language-coach.md`](rules/languag
 
 The rule ships with examples for English, German and Spanish in [`rules/examples/`](rules/examples/). Other languages use the English example rows and still work. To add an example for your language, create `rules/examples/<language>.md` (for example `french.md`) in the same format and open a pull request.
 
+## Practice modes
+
+When a check has corrections, it ends with one sentence for you to retype. The `practice` setting decides when you do that:
+
+| Mode | What happens | Good for |
+|---|---|---|
+| `after` (default) | The AI does the task right away. You retype the sentence at the start of your next prompt, if you want to. | Never being slowed down |
+| `before` | The AI stops after the check. The task starts only after you have retyped the sentence with the fix. | Making the practice stick |
+| `off` | No practice sentence, only the corrections. | Learning by reading |
+
+With `before`, a session looks like this. These are the replies from a real test session, shortened:
+
+1. **You:** `can you tell me what is the capital from France and write it in uppercase ?`
+2. **AI:** the English check with three fixes, then
+   **Practice:** retype this sentence to start the task, or reply "skip".
+   > Can you tell me what the capital of France is and write it in uppercase?
+3. **You:** `Can you tell me what the capital from France is and write it in uppercase?`
+4. **AI:** **Practice:** not yet. One row shows that "from" should still be "of", and the sentence to retype again.
+5. **You:** `Can you tell me what the capital of France is and write it in uppercase?`
+6. **AI:** **Practice:** correct. The capital of France is Paris. In uppercase: **PARIS**
+
+A few details:
+
+- Prompts without mistakes have no practice sentence, so the task starts right away.
+- Reply `skip` to start the task without retyping.
+- If you send a different prompt instead, it gets its own check and the old task is dropped.
+- Retyped sentences are not logged as new prompts, so they do not make your stats look better than they are.
+
 ## Usage
 
 **Write your prompts as usual**, in the language you are learning. Paste whatever you need: logs, tickets and code are not corrected.
 
-**Retype the practice sentence** at the start of your next prompt, if you want to. It is checked like the rest of the prompt.
+**Retype the practice sentence.** In `after` mode, put it at the start of your next prompt, where it is checked like the rest of the prompt. In `before` mode, send it on its own to start the task.
 
 **Check your progress and take a quiz:**
 
@@ -272,6 +311,7 @@ The script makes no network calls. The check block is part of the AI's normal re
 |---|---|---|---|
 | Language you are learning | Plugin option, in `/config` | `install_cursor.py --language` | English |
 | Language for explanations | Plugin option, in `/config` | `install_cursor.py --explain-in` | English |
+| Practice mode: `after`, `before` or `off` | Plugin option, in `/config` | `install_cursor.py --practice` | after |
 
 Environment variables, for advanced setups:
 
@@ -279,6 +319,7 @@ Environment variables, for advanced setups:
 |---|---|
 | `LANGUAGE_COACH_LANGUAGE` | Overrides the language you are learning |
 | `LANGUAGE_COACH_EXPLAIN_IN` | Overrides the language for explanations |
+| `LANGUAGE_COACH_PRACTICE` | Overrides the practice mode |
 | `LANGUAGE_COACH_HOME` | Stores the data somewhere other than `~/.language-coach` |
 
 ### Command line
@@ -290,7 +331,7 @@ python3 scripts/coach.py stats --language German    # progress report
 python3 scripts/coach.py quiz --n 5                 # mistakes due for review, as JSON
 python3 scripts/coach.py review <id> pass           # record a quiz answer (pass or fail)
 python3 scripts/coach.py rule --language Spanish    # print the rule, to paste into another tool
-python3 scripts/coach.py config --language German   # save settings to config.json
+python3 scripts/coach.py config --practice before   # save settings to config.json
 ```
 
 The `rule` command is useful for tools without hooks. Paste its output into the tool's custom instructions and you get the corrections, without the log.
@@ -319,6 +360,8 @@ Both keep your log in `~/.language-coach/`. Delete that folder to remove your da
 
 **How accurate are the corrections?** As accurate as the model you use. Strong models are very good at this, but they can still miss a mistake or flag something that is fine. When a correction looks wrong to you, ask about it in the same session.
 
+**Is the `before` mode a hard lock?** No. Like the check itself, it is part of the rule the AI follows, and no hook can stop a model from answering. In testing, Claude waited every time it was supposed to. If it ever starts the task early, start a new session to reload the rule.
+
 **Why does the check sometimes not appear?** Short replies like "yes" or "go on" with no mistakes are skipped on purpose. If it is missing for a normal prompt, start a new session to reload the rule.
 
 **Does it work on Windows?** It is untested there. The hooks call `python3`, which is often called `python` or `py` on Windows.
@@ -335,7 +378,8 @@ language-coach/
 ├── hooks/hooks.json         # Claude Code hooks
 ├── rules/
 │   ├── language-coach.md    # the coaching rule template
-│   └── examples/            # example check blocks per language
+│   ├── examples/            # example check blocks per language
+│   └── practice/            # the rule section for each practice mode
 ├── scripts/
 │   ├── coach.py             # parsing, logging, stats, quiz, review
 │   └── install_cursor.py    # Cursor installer
